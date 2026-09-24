@@ -4,15 +4,13 @@ import { TimetableGenerator } from '../algorithms/TimetableGenerator.js';
 import { TimetableValidator } from '../validators/TimetableValidator.js';
 import { seedData } from '../data/seedData.js';
 
-const facultyAvailabilityMap = seedData.facultyAvailability.reduce((acc, entry) => {
-  if (!acc[entry.facultyId]) {
-    acc[entry.facultyId] = {};
-  }
-  acc[entry.facultyId][entry.timeSlotId] = entry.available;
-  return acc;
+const facultyAvailabilityMap = seedData.facultyAvailability.reduce((map, entry) => {
+  map[entry.facultyId] ??= {};
+  map[entry.facultyId][entry.timeSlotId] = entry.available;
+  return map;
 }, {});
 
-function buildGenerator() {
+function createGenerator(overrides = {}) {
   return new TimetableGenerator({
     divisions: seedData.divisions,
     subjects: seedData.subjects,
@@ -20,224 +18,189 @@ function buildGenerator() {
     classrooms: seedData.classrooms,
     timeSlots: seedData.timeSlots,
     facultyAvailabilityMap,
-    subjectRequirementsMap: Object.fromEntries(seedData.subjectRequirements.map((entry) => [entry.subjectId, entry])),
+    subjectRequirementsMap: seedData.subjectRequirements,
+    roomAvailability: seedData.roomAvailability,
+    divisionSubjects: seedData.divisionSubjects,
+    ...overrides,
   });
 }
 
-test('faculty conflict is detected when multiple divisions share a faculty slot', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-b', subjectId: 'sub-dbms', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' },
-  ];
-
-  const validator = new TimetableValidator({
+function createValidator(entries, overrides = {}) {
+  return new TimetableValidator({
     entries,
     facultyAvailabilityMap,
     classrooms: seedData.classrooms,
     divisions: seedData.divisions,
     subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3, 'sub-dbms': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT'));
-});
-
-test('division conflict is detected when a division has two subjects in same slot', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-a', subjectId: 'sub-dbms', facultyId: 'fac-f2', roomId: 'room-102', timeSlotId: 'mon-1' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3, 'sub-dbms': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'DIVISION_CONFLICT'));
-});
-
-test('classroom conflict is detected when two divisions share a room slot', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-b', subjectId: 'sub-dbms', facultyId: 'fac-f2', roomId: 'room-101', timeSlotId: 'mon-1' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3, 'sub-dbms': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'CLASSROOM_CONFLICT'));
-});
-
-test('faculty unavailable is rejected', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'fri-1' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_UNAVAILABLE'));
-});
-
-test('classroom unavailable is rejected', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f4', roomId: 'room-101', timeSlotId: 'fri-1' },
-  ];
-  const roomAvailability = {
-    ...seedData.roomAvailability,
-    'room-101': {
-      ...seedData.roomAvailability['room-101'],
-      'fri-1': false,
-    },
-  };
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3 },
-    roomAvailability,
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'CLASSROOM_UNAVAILABLE'));
-});
-
-test('wrong room type is rejected', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-cn', facultyId: 'fac-f3', roomId: 'room-101', timeSlotId: 'mon-1' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-cn': 2 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'ROOM_TYPE_VIOLATION'));
-});
-
-test('insufficient room capacity is rejected', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-103', timeSlotId: 'mon-1' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'CAPACITY_VIOLATION'));
-});
-
-test('required session count is enforced', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f4', roomId: 'room-102', timeSlotId: 'mon-2' },
-  ];
-
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3 },
-  });
-
-  const result = validator.validate();
-  assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'SESSION_COUNT_MISMATCH'));
-});
-
-test('valid timetable passes validation', () => {
-  const generator = buildGenerator();
-  const result = generator.generate();
-
-  assert.equal(result.valid, true, JSON.stringify(result.conflicts));
-
-  const requiredSessionsMap = Object.fromEntries(
-    seedData.subjects.map((subject) => {
-      const matchingDivisions = seedData.divisions.filter((division) => division.departmentId === subject.departmentId).length;
-      return [subject.id, subject.requiredSessions * matchingDivisions];
-    }),
-  );
-
-  const validator = new TimetableValidator({
-    entries: result.entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap,
+    faculty: seedData.faculty,
+    timeSlots: seedData.timeSlots,
+    subjectRequirementsMap: seedData.subjectRequirements,
+    divisionSubjects: seedData.divisionSubjects,
     roomAvailability: seedData.roomAvailability,
+    ...overrides,
   });
+}
 
-  const validation = validator.validate();
+const entry = (overrides = {}) => ({
+  id: `entry-${Math.random()}`,
+  divisionId: 'div-cse-a',
+  subjectId: 'sub-ds',
+  facultyId: 'fac-f1',
+  roomId: 'room-101',
+  timeSlotId: 'mon-1',
+  ...overrides,
+});
+
+test('generates a valid timetable for explicit division assignments', () => {
+  const result = createGenerator().generate();
+  assert.equal(result.valid, true, JSON.stringify(result.conflicts));
+  assert.equal(result.status, 'VALID');
+
+  const validation = createValidator(result.entries).validate();
   assert.equal(validation.valid, true, JSON.stringify(validation.conflicts));
 });
 
-test('impossible timetable reports solvability issue', () => {
-  const generator = buildGenerator();
-  const result = generator.generate();
-  assert.ok(result.valid || result.conflicts.length > 0);
+test('does not schedule department subjects not assigned to a division', () => {
+  const result = createGenerator({
+    divisions: [{ id: 'd1', name: 'D1', departmentId: 'dept-cse', studentCount: 10 }],
+    divisionSubjects: { d1: [{ subjectId: 'sub-ds', requiredSessions: 1 }] },
+    subjects: seedData.subjects,
+    timeSlots: seedData.timeSlots.slice(0, 3),
+  }).generate();
+
+  assert.equal(result.valid, true);
+  assert.equal(result.entries.length, 1);
+  assert.equal(result.entries[0].subjectId, 'sub-ds');
 });
 
-test('manual timetable modification causing conflict is caught', () => {
-  const entries = [
-    { divisionId: 'div-cse-a', subjectId: 'sub-ds', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-b', subjectId: 'sub-dbms', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' },
-    { divisionId: 'div-cse-a', subjectId: 'sub-java', facultyId: 'fac-f4', roomId: 'room-101', timeSlotId: 'mon-2' },
-  ];
+test('detects faculty conflict', () => {
+  const result = createValidator([
+    entry({ id: 'e1', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' }),
+    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' }),
+  ]).validate();
+  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT'));
+});
 
-  const validator = new TimetableValidator({
-    entries,
-    facultyAvailabilityMap,
-    classrooms: seedData.classrooms,
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    requiredSessionsMap: { 'sub-ds': 3, 'sub-dbms': 3, 'sub-java': 3 },
-  });
+test('detects classroom conflict', () => {
+  const result = createValidator([
+    entry({ id: 'e1', roomId: 'room-101' }),
+    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f3', roomId: 'room-101', timeSlotId: 'mon-1' }),
+  ]).validate();
+  assert.ok(result.conflicts.some((conflict) => conflict.type === 'ROOM_CONFLICT'));
+});
 
-  const result = validator.validate();
+test('detects division conflict', () => {
+  const result = createValidator([
+    entry({ id: 'e1', subjectId: 'sub-ds', facultyId: 'fac-f1' }),
+    entry({ id: 'e2', subjectId: 'sub-java', facultyId: 'fac-f3', roomId: 'room-102' }),
+  ]).validate();
+  assert.ok(result.conflicts.some((conflict) => conflict.type === 'DIVISION_CONFLICT'));
+});
+
+test('detects unavailable faculty and invalid qualification', () => {
+  const result = createValidator([entry({ timeSlotId: 'fri-1', facultyId: 'fac-f1' })]).validate();
+  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_UNAVAILABLE'));
+  const unqualified = createValidator([entry({ facultyId: 'fac-f2', timeSlotId: 'mon-1' })]).validate();
+  assert.ok(unqualified.conflicts.some((conflict) => conflict.type === 'FACULTY_NOT_QUALIFIED'));
+});
+
+test('detects classroom availability, type, and capacity violations', () => {
+  const unavailable = createValidator([entry({ timeSlotId: 'fri-1' })], {
+    roomAvailability: {
+      ...seedData.roomAvailability,
+      'room-101': { ...seedData.roomAvailability['room-101'], 'fri-1': false },
+    },
+  }).validate();
+  assert.ok(unavailable.conflicts.some((conflict) => conflict.type === 'ROOM_UNAVAILABLE'));
+
+  const wrongType = createValidator([entry({ subjectId: 'sub-cn', roomId: 'room-101' })]).validate();
+  assert.ok(wrongType.conflicts.some((conflict) => conflict.type === 'ROOM_TYPE_MISMATCH'));
+
+  const tooSmall = createValidator([entry({ roomId: 'room-103' })]).validate();
+  assert.ok(tooSmall.conflicts.some((conflict) => conflict.type === 'ROOM_CAPACITY'));
+});
+
+test('detects required session count per division', () => {
+  const result = createValidator([entry({ timeSlotId: 'mon-1' })]).validate();
+  const conflict = result.conflicts.find((item) => item.type === 'SESSION_COUNT_MISMATCH');
+  assert.ok(conflict);
+  assert.equal(conflict.divisionId, 'div-cse-a');
+  assert.equal(conflict.expectedCount, 3);
+  assert.equal(conflict.actualCount, 1);
+});
+
+test('reports an impossible schedule with grouped reasons', () => {
+  const result = createGenerator({
+    divisions: [{ id: 'd1', name: 'D1', departmentId: 'dept-cse', studentCount: 100 }],
+    divisionSubjects: { d1: [{ subjectId: 'sub-ds', requiredSessions: 1 }] },
+    timeSlots: [{ id: 'only', day: 'Monday', period: 1 }],
+  }).generate();
+
   assert.equal(result.valid, false);
-  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT' || conflict.type === 'CLASSROOM_CONFLICT'));
+  assert.equal(result.status, 'INCOMPLETE');
+  assert.equal(result.entries.length, 0);
+  assert.equal(result.conflicts[0].type, 'NO_VALID_SCHEDULE');
+  assert.ok(result.conflicts[0].reasons.some((reason) => reason.type === 'ROOM_CAPACITY'));
+});
+
+test('backtracks after an earlier resource choice blocks a later task', () => {
+  const divisions = [
+    { id: 'd1', name: 'D1', departmentId: 'dept-cse', studentCount: 10 },
+    { id: 'd2', name: 'D2', departmentId: 'dept-cse', studentCount: 10 },
+  ];
+  const subjects = [
+    { id: 'a', name: 'A', departmentId: 'dept-cse', requiredSessions: 1, roomType: 'CLASSROOM', capacity: 10 },
+    { id: 'b', name: 'B', departmentId: 'dept-cse', requiredSessions: 1, roomType: 'CLASSROOM', capacity: 20 },
+  ];
+  const faculty = [{ id: 'f1', name: 'Shared', qualifications: ['a', 'b'] }];
+  const slots = [
+    { id: 's1', day: 'Monday', period: 1 },
+    { id: 's2', day: 'Tuesday', period: 2 },
+  ];
+  class TrackingGenerator extends TimetableGenerator {
+    backtracks = 0;
+
+    getStaticCandidateCount() {
+      return 0;
+    }
+
+    getCandidates(...args) {
+      const result = super.getCandidates(...args);
+      result.candidates.sort((a, b) => (a.room.id === 'r1' ? -1 : b.room.id === 'r1' ? 1 : 0));
+      return result;
+    }
+
+    removeCandidate(...args) {
+      this.backtracks += 1;
+      return super.removeCandidate(...args);
+    }
+  }
+
+  const generator = new TrackingGenerator({
+    divisions,
+    subjects,
+    faculty,
+    classrooms: [
+      { id: 'r1', roomType: 'CLASSROOM', capacity: 20 },
+      { id: 'r2', roomType: 'CLASSROOM', capacity: 10 },
+    ],
+    timeSlots: slots,
+    facultyAvailabilityMap: { f1: { s1: true, s2: true } },
+    roomAvailability: { r1: { s1: false, s2: true }, r2: { s1: true, s2: true } },
+    divisionSubjects: { d1: [{ subjectId: 'a' }], d2: [{ subjectId: 'b' }] },
+  });
+  const result = generator.generate();
+
+  assert.equal(result.valid, true, JSON.stringify(result.conflicts));
+  assert.ok(generator.backtracks > 0);
+  assert.deepEqual(result.entries.map((item) => item.roomId).sort(), ['r1', 'r2']);
+});
+
+test('manual edits remain independently validatable', () => {
+  const result = createValidator([
+    entry({ id: 'e1', timeSlotId: 'mon-1' }),
+    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' }),
+  ]).validate();
+  assert.equal(result.valid, false);
+  assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT'));
 });

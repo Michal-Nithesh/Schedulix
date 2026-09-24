@@ -10,6 +10,21 @@ export const seedData = {
     { id: 'div-it-a', name: 'IT-A', departmentId: 'dept-it', studentCount: 55 },
     { id: 'div-ece-a', name: 'ECE-A', departmentId: 'dept-ece', studentCount: 52 },
   ],
+  // Explicit enrollment avoids assuming every department subject belongs to every division.
+  divisionSubjects: {
+    'div-cse-a': [
+      { subjectId: 'sub-ds' }, { subjectId: 'sub-dbms' }, { subjectId: 'sub-os' },
+      { subjectId: 'sub-cn' }, { subjectId: 'sub-java' }, { subjectId: 'sub-math' },
+    ],
+    'div-cse-b': [
+      { subjectId: 'sub-ds' }, { subjectId: 'sub-dbms' }, { subjectId: 'sub-os' },
+      { subjectId: 'sub-cn' }, { subjectId: 'sub-java' }, { subjectId: 'sub-math' },
+    ],
+    'div-it-a': [
+      { subjectId: 'sub-web' }, { subjectId: 'sub-dsa-it' },
+    ],
+    'div-ece-a': [],
+  },
   subjects: [
     { id: 'sub-ds', name: 'Data Structures', departmentId: 'dept-cse', requiredSessions: 3, roomType: 'CLASSROOM', capacity: 60 },
     { id: 'sub-dbms', name: 'DBMS', departmentId: 'dept-cse', requiredSessions: 3, roomType: 'CLASSROOM', capacity: 60 },

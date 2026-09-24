@@ -1,4 +1,6 @@
-# Intelligent Timetable Generator
+# Schedulix
+
+Schedulix is an intelligent academic timetable generator for configuring, generating, validating, and publishing conflict-aware schedules.
 
 ## Problem statement
 This project is a production-style MVP for an academic timetable generator that helps administrators manage departments, divisions, subjects, faculty, classrooms, time slots, availability, generation, validation, and publication while preserving a clear audit trail.
@@ -18,7 +20,7 @@ The application follows a layered structure:
 
 - React frontend for UI and dashboard interactions
 - Express backend for REST APIs and business rules
-- PostgreSQL/Supabase-ready schema design for eventual persistence
+- PostgreSQL/Supabase schema in `database/schema.sql`
 - Backend-heavy scheduling and validation logic so the browser never owns the core algorithm
 
 ## Technology choices
@@ -29,6 +31,8 @@ The application follows a layered structure:
 - UI: routed single-page application with reusable cards, tables and forms
 
 ## Database design
+
+Run `database/schema.sql` in a Supabase SQL editor to create the persistence layer. The backend currently uses in-memory seed data, so applying this schema does not change runtime behavior until a repository layer is connected.
 The schema is intentionally normalized and includes tables such as:
 
 - users
@@ -90,14 +94,10 @@ Key endpoints:
 - GET /api/timetable/current
 
 ## Setup instructions
-1. Copy .env.example to .env and fill values.
-2. Install dependencies:
-   npm install
-3. Start backend:
-   npm run dev --workspace backend
-4. Start frontend:
-   npm run dev --workspace frontend
-5. Open http://localhost:5173
+1. Install dependencies in each package: `cd backend && npm install`, then `cd ../frontend && npm install`.
+2. Start the backend with `cd backend && npm run dev`.
+3. Start the frontend with `cd frontend && npm run dev`.
+4. Open http://localhost:5173
 
 ## Environment variables
 See .env.example for the required environment variables.
@@ -106,9 +106,9 @@ See .env.example for the required environment variables.
 The project ships with realistic example data for multiple departments and divisions. The data is designed to demonstrate both valid scheduling and constraint failure scenarios.
 
 ## Testing instructions
-Run:
+Run from the repository root:
 
-node --test backend/src/tests/timetable.test.js
+`cd backend && npm test`
 
 ## Known limitations
 - This MVP uses in-memory seed data rather than a live Supabase instance.

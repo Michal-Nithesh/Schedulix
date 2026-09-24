@@ -14,6 +14,20 @@ const facultyAvailabilityMap = seedData.facultyAvailability.reduce((acc, entry) 
   return acc;
 }, {});
 
+function buildGenerator() {
+  return new TimetableGenerator({
+    divisions: seedData.divisions,
+    subjects: seedData.subjects,
+    faculty: seedData.faculty,
+    classrooms: seedData.classrooms,
+    timeSlots: seedData.timeSlots,
+    facultyAvailabilityMap,
+    subjectRequirementsMap: seedData.subjectRequirements,
+    roomAvailability: seedData.roomAvailability,
+    divisionSubjects: seedData.divisionSubjects,
+  });
+}
+
 router.get('/departments', (_req, res) => {
   res.json(successResponse(seedData.departments));
 });
@@ -39,18 +53,7 @@ router.get('/time-slots', (_req, res) => {
 });
 
 router.post('/timetable/generate', (_req, res) => {
-  const generator = new TimetableGenerator({
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    faculty: seedData.faculty,
-    classrooms: seedData.classrooms,
-    timeSlots: seedData.timeSlots,
-    facultyAvailabilityMap,
-    subjectRequirementsMap: Object.fromEntries(seedData.subjectRequirements.map((entry) => [entry.subjectId, entry])),
-    roomAvailability: seedData.roomAvailability,
-  });
-
-  const result = generator.generate();
+  const result = buildGenerator().generate();
 
   if (!result.valid) {
     return res.status(400).json(errorResponse('Timetable generation failed due to hard constraint conflicts.', 'GENERATION_FAILED', result.conflicts));
@@ -67,7 +70,11 @@ router.post('/timetable/validate', (req, res) => {
     classrooms: seedData.classrooms,
     divisions: seedData.divisions,
     subjects: seedData.subjects,
+    faculty: seedData.faculty,
+    timeSlots: seedData.timeSlots,
     requiredSessionsMap: Object.fromEntries(seedData.subjects.map((subject) => [subject.id, subject.requiredSessions])),
+    subjectRequirementsMap: seedData.subjectRequirements,
+    divisionSubjects: seedData.divisionSubjects,
     roomAvailability: seedData.roomAvailability,
   });
 
@@ -76,18 +83,7 @@ router.post('/timetable/validate', (req, res) => {
 });
 
 router.get('/timetable/current', (_req, res) => {
-  const generator = new TimetableGenerator({
-    divisions: seedData.divisions,
-    subjects: seedData.subjects,
-    faculty: seedData.faculty,
-    classrooms: seedData.classrooms,
-    timeSlots: seedData.timeSlots,
-    facultyAvailabilityMap,
-    subjectRequirementsMap: Object.fromEntries(seedData.subjectRequirements.map((entry) => [entry.subjectId, entry])),
-    roomAvailability: seedData.roomAvailability,
-  });
-
-  const generated = generator.generate();
+  const generated = buildGenerator().generate();
   res.json(successResponse({ entries: generated.entries, status: generated.valid ? 'ready' : 'conflicts' }));
 });
 
