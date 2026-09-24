@@ -12,165 +12,510 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  html, body, #root { @apply min-h-full; }
-  body { @apply m-0 min-h-screen bg-paper; }
-  button, input, select { @apply font-sans; }
-  h1, h2, h3, p { @apply m-0; }
-  button { @apply cursor-pointer; }
+  html,
+  body,
+  #root {
+    @apply min-h-full;
+  }
+  body {
+    @apply m-0 min-h-screen bg-paper;
+  }
+  button,
+  input,
+  select {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  p {
+    @apply m-0;
+  }
+  button {
+    @apply cursor-pointer;
+  }
 }
 
 @layer components {
-  .app-shell { @apply flex min-h-screen bg-paper; }
-  .sidebar { @apply flex w-[270px] shrink-0 flex-col border-r border-ocean/30 bg-ocean px-5 py-7 text-paper; }
-  .brand { @apply mb-2 flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-paper no-underline; }
-  .brand img { @apply h-10 w-10 object-contain; }
-  .brand span { @apply leading-none; }
-  .brand-dark { @apply text-ocean; }
-  .sidebar-caption { @apply mb-10 text-xs uppercase tracking-[.18em] text-mist/70; }
-  nav { @apply flex flex-col gap-1.5; }
-  .nav-link { @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-mist/80 no-underline transition duration-200 hover:bg-white/10 hover:text-white; }
-  .nav-link span { @apply w-5 text-center text-base; }
-  .nav-link.active { @apply bg-paper font-bold text-ocean shadow-soft; }
-  .sidebar-bottom { @apply mt-auto flex flex-col gap-5; }
-  .generate-link { @apply rounded-lg border border-coral/70 bg-coral px-4 py-3 text-center text-sm font-bold text-white no-underline shadow-soft transition hover:-translate-y-0.5 hover:bg-coral/90; }
-  .user-chip { @apply flex items-center gap-2 border-0 bg-transparent p-0 text-left text-paper; }
-  .user-chip b, .user-chip small { @apply block; }
-  .user-chip b { @apply text-sm; }
-  .user-chip small { @apply mt-0.5 text-xs text-mist/70; }
-  .avatar { @apply grid h-9 w-9 shrink-0 place-items-center rounded-full bg-teal font-bold text-white; }
-  .content { @apply min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,_#e7f1e9_0,_#f7f2e8_42%,_#f7f2e8_100%)] px-6 py-7 md:px-10; }
-  .topbar { @apply mb-12 flex items-center justify-between border-b border-line/70 pb-4 text-sm; }
-  .workspace-mark { @apply flex items-center gap-2 text-ocean; }
-  .workspace-mark img { @apply h-7 w-7 object-contain; }
-  .workspace-mark b { @apply font-display text-base; }
-  .breadcrumb { @apply text-ink/40; }
-  .role-badge { @apply rounded-full bg-teal/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ocean; }
-  .page-heading { @apply mb-8 flex animate-fade-up flex-wrap items-end justify-between gap-5; }
-  .eyebrow { @apply mb-1.5 text-[.68rem] font-bold uppercase tracking-[.18em] text-teal; }
-  h1 { @apply font-display text-4xl font-bold leading-tight tracking-tight text-ink md:text-5xl; }
-  h2 { @apply font-display text-xl font-bold text-ink; }
-  .page-description { @apply mt-2 max-w-2xl text-sm leading-6 text-ink/60; }
-  .primary-button, .secondary-button, .danger-button { @apply inline-flex items-center justify-center gap-2 rounded-lg border-0 px-4 py-2.5 text-sm font-bold no-underline transition duration-200; }
-  .primary-button { @apply bg-ocean text-white shadow-soft hover:-translate-y-0.5 hover:bg-ink; }
-  .secondary-button { @apply border border-line bg-white/60 text-ocean hover:border-teal hover:bg-white; }
-  .danger-button { @apply bg-red-50 text-red-700 hover:bg-red-100; }
-  .compact { @apply px-3.5 py-2; }
-  .notice { @apply mb-6 flex animate-fade-up items-center justify-between gap-4 rounded-lg border border-coral/40 bg-coral/10 px-4 py-3 text-sm text-ink; }
-  .notice button, .close-button { @apply border-0 bg-transparent text-xl text-ink/50 hover:text-ink; }
-  .stats-grid { @apply mb-7 grid animate-fade-up grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3; }
-  .stat-card { @apply min-h-[135px] rounded-xl border border-line/80 bg-white/60 p-5 shadow-soft transition duration-300 hover:-translate-y-1 hover:bg-white; }
-  .stat-title { @apply text-xs font-bold uppercase tracking-wider text-ink/50; }
-  .stat-value { @apply mt-5 font-display text-4xl font-bold text-ocean; }
-  .stat-card p { @apply mt-1 text-xs text-ink/50; }
-  .dashboard-grid, .generate-layout { @apply grid gap-5 lg:grid-cols-2; }
-  .panel { @apply rounded-xl border border-line/70 bg-white/65 p-6 shadow-soft backdrop-blur-sm; }
-  .panel-heading { @apply mb-5 flex items-start justify-between gap-4; }
-  .state-pill { @apply inline-flex rounded-full px-2.5 py-1 text-xs font-bold; }
-  .state-pill.success { @apply bg-teal/15 text-teal; }
-  .state-pill.pending { @apply bg-coral/15 text-coral; }
-  .state-pill.muted { @apply bg-ink/10 text-ink/50; }
-  .conflict-number { @apply font-display text-4xl text-teal; }
-  .conflict-panel p, .availability-cards p, .report-card p { @apply mt-3 text-sm leading-6 text-ink/60; }
-  .text-link { @apply mt-4 border-0 bg-transparent p-0 text-sm font-bold text-ocean hover:text-coral; }
-  .pipeline { @apply flex items-center justify-between gap-2 py-5; }
-  .pipeline span { @apply text-xs text-ink/40; }
-  .pipeline b { @apply ml-1 text-ink/60; }
-  .pipeline .done { @apply font-bold text-teal; }
-  .pipeline i { @apply h-px flex-1 bg-line; }
-  .form-stack { @apply flex flex-col gap-4; }
-  .form-grid { @apply grid gap-4 sm:grid-cols-2; }
-  .check-grid { @apply mt-3 grid gap-2 sm:grid-cols-2; }
-  .check-row { @apply flex cursor-pointer items-center gap-3 rounded-lg border border-line/70 bg-white/60 p-3 text-sm transition hover:border-teal; }
-  .check-row input { @apply h-4 w-4 accent-teal; }
-  .check-row b, .check-row small { @apply block; }
-  .check-row small { @apply mt-1 text-xs font-normal normal-case tracking-normal text-ink/50; }
-  .form-stack label, .form-field label, .view-controls label { @apply flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60; }
-  input, select { @apply rounded-lg border border-line bg-white/80 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20; }
-  .password-input { @apply relative block; }
-  .password-input input { @apply w-full pr-11; }
-  .password-toggle { @apply absolute right-2 top-1/2 -translate-y-1/2 border-0 bg-transparent px-2 py-1 text-base font-bold text-ocean hover:text-teal; }
-  .form-field { @apply mb-4; }
-  .generate-form { @apply animate-fade-up; }
-  .generate-button { @apply mt-2 w-full; }
-  .generation-panel { @apply animate-float-in; }
-  .check-list { @apply mt-6 flex flex-col gap-3; }
-  .checked { @apply flex items-center gap-3 rounded-lg bg-mist/40 px-3 py-2.5 text-sm text-ink/75; }
-  .checked span { @apply grid h-5 w-5 place-items-center rounded-full bg-teal text-xs font-bold text-white; }
-  .empty-state { @apply flex min-h-[170px] flex-col items-center justify-center gap-3 text-center text-sm text-ink/50; }
-  .empty-icon { @apply font-display text-4xl text-teal/60; }
-  .result-panel { @apply mt-5 flex animate-float-in flex-wrap items-center gap-4 rounded-xl border p-5 shadow-soft; }
-  .result-success { @apply border-teal/40 bg-teal/10; }
-  .result-failure { @apply border-coral/40 bg-coral/10; }
-  .result-icon { @apply grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white font-bold text-teal shadow-soft; }
-  .result-failure .result-icon { @apply text-coral; }
-  .result-copy { @apply min-w-0 flex-1; }
-  .result-copy > p:not(.eyebrow) { @apply mt-2 text-sm text-ink/70; }
-  .result-copy ul { @apply mt-2 pl-5 text-xs text-ink/60; }
-  .result-actions { @apply flex flex-wrap gap-2; }
-  .view-controls { @apply flex flex-wrap gap-3; }
-  .view-controls label { @apply min-w-[130px]; }
-  .timetable-wrap, .table-panel { @apply overflow-x-auto; }
-  .timetable, .data-table, .availability-table { @apply w-full min-w-[680px] border-collapse text-left text-sm; }
-  th { @apply px-3 py-3 text-xs uppercase tracking-wider text-ink/45; }
-  td { @apply border-t border-line/50 px-3 py-3; }
-  .timetable thead th { @apply border-b border-line bg-mist/30 text-ocean; }
-  .timetable tbody th { @apply border-t border-line/50 text-ocean; }
-  .session-cell { @apply flex min-h-[88px] w-full flex-col items-start justify-center gap-1 rounded-lg border border-teal/30 bg-teal/10 px-3 text-left text-ink transition hover:-translate-y-0.5 hover:border-teal hover:bg-teal/20; }
-  .session-cell b { @apply text-sm; }
-  .session-cell small { @apply text-xs text-ink/55; }
-  .free-cell { @apply text-xs text-ink/30; }
-  .table-toolbar { @apply mb-5 flex flex-wrap items-center justify-between gap-3; }
-  .table-toolbar input { @apply max-w-xs; }
-  .data-table b, .data-table small { @apply block; }
-  .data-table small { @apply mt-1 text-xs text-ink/45; }
-  .icon-button { @apply border-0 bg-transparent p-2 text-ink/40 hover:text-coral; }
-  .availability-table td, .availability-table th { @apply text-center; }
-  .availability-table th:first-child { @apply text-left; }
-  .availability-open, .availability-closed { @apply inline-block rounded-full px-2 py-1 text-xs; }
-  .availability-open { @apply bg-teal/15 text-teal; }
-  .availability-closed { @apply bg-ink/5 text-ink/30; }
-  .report-grid { @apply grid gap-5 sm:grid-cols-2; }
-  .report-card { @apply animate-fade-up transition hover:-translate-y-1; }
-  .report-mark { @apply text-3xl text-coral; }
-  .login-screen { @apply grid min-h-screen bg-paper lg:grid-cols-[.8fr_1.2fr]; }
-  .login-panel { @apply flex flex-col justify-center px-7 py-12 sm:px-16 lg:px-24; }
-  .login-panel h1 { @apply mt-8 max-w-lg; }
-  .login-copy { @apply mb-8 mt-3 max-w-md text-base leading-7 text-ink/60; }
-  .login-panel small { @apply mt-5 text-xs text-ink/40; }
-  .form-error { @apply mt-4 rounded-lg border border-coral/40 bg-coral/10 px-3 py-2 text-sm text-coral; }
-  .form-success { @apply mt-4 rounded-lg border border-teal/40 bg-teal/10 px-3 py-2 text-sm text-teal; }
-  .auth-switch { @apply self-start; }
-  .login-art { @apply relative hidden overflow-hidden bg-ocean p-12 lg:block; }
-  .login-art::before { content: ''; @apply absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal/50; }
-  .login-art::after { content: ''; @apply absolute -bottom-32 -left-24 h-96 w-96 rounded-full border-[40px] border-coral/50; }
-  .art-note { @apply relative z-10 mb-20 flex items-center gap-2 text-sm font-bold text-mist; }
-  .status-dot { @apply h-2.5 w-2.5 animate-pulse rounded-full bg-coral; }
-  .art-grid { @apply relative z-10 grid max-w-2xl grid-cols-5 gap-3 rounded-2xl border border-white/20 bg-white/10 p-5 text-center text-xs text-mist shadow-lift backdrop-blur; }
-  .art-grid b { @apply pb-2 text-coral; }
-  .art-grid span { @apply self-center text-left text-xs text-mist/60; }
-  .art-grid strong { @apply rounded-lg bg-white/15 px-3 py-6 text-sm text-white; }
-  .loading-screen { @apply grid min-h-screen place-items-center bg-paper font-display text-2xl text-ocean; }
-  .modal-backdrop { @apply fixed inset-0 z-50 grid place-items-center bg-ink/50 p-5 backdrop-blur-sm; }
-  .modal { @apply relative w-full max-w-md animate-float-in rounded-xl bg-paper p-7 shadow-lift; }
-  .close-button { @apply absolute right-4 top-3; }
-  .modal-location { @apply mt-2 text-sm text-ink/55; }
-  .detail-list { @apply mt-6 grid grid-cols-2 gap-y-3 text-sm; }
-  .detail-list dt { @apply font-bold text-ink/50; }
-  .detail-list dd { @apply m-0 text-right text-ink; }
-  .modal-actions { @apply mt-7 flex justify-end gap-2; }
+  .app-shell {
+    @apply flex min-h-screen bg-paper;
+  }
+  .sidebar {
+    @apply flex w-[270px] shrink-0 flex-col border-r border-ocean/30 bg-ocean px-5 py-7 text-paper;
+  }
+  .brand {
+    @apply mb-2 flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-paper no-underline;
+  }
+  .brand img {
+    @apply h-10 w-10 object-contain;
+  }
+  .brand span {
+    @apply leading-none;
+  }
+  .brand-dark {
+    @apply text-ocean;
+  }
+  .sidebar-caption {
+    @apply mb-10 text-xs uppercase tracking-[.18em] text-mist/70;
+  }
+  nav {
+    @apply flex flex-col gap-1.5;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-mist/80 no-underline transition duration-200 hover:bg-white/10 hover:text-white;
+  }
+  .nav-link span {
+    @apply w-5 text-center text-base;
+  }
+  .nav-link.active {
+    @apply bg-paper font-bold text-ocean shadow-soft;
+  }
+  .sidebar-bottom {
+    @apply mt-auto flex flex-col gap-5;
+  }
+  .generate-link {
+    @apply rounded-lg border border-coral/70 bg-coral px-4 py-3 text-center text-sm font-bold text-white no-underline shadow-soft transition hover:-translate-y-0.5 hover:bg-coral/90;
+  }
+  .user-chip {
+    @apply flex items-center gap-2 border-0 bg-transparent p-0 text-left text-paper;
+  }
+  .user-chip b,
+  .user-chip small {
+    @apply block;
+  }
+  .user-chip b {
+    @apply text-sm;
+  }
+  .user-chip small {
+    @apply mt-0.5 text-xs text-mist/70;
+  }
+  .avatar {
+    @apply grid h-9 w-9 shrink-0 place-items-center rounded-full bg-teal font-bold text-white;
+  }
+  .content {
+    @apply min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,_#e7f1e9_0,_#f7f2e8_42%,_#f7f2e8_100%)] px-6 py-7 md:px-10;
+  }
+  .topbar {
+    @apply mb-12 flex items-center justify-between border-b border-line/70 pb-4 text-sm;
+  }
+  .workspace-mark {
+    @apply flex items-center gap-2 text-ocean;
+  }
+  .workspace-mark img {
+    @apply h-7 w-7 object-contain;
+  }
+  .workspace-mark b {
+    @apply font-display text-base;
+  }
+  .breadcrumb {
+    @apply text-ink/40;
+  }
+  .role-badge {
+    @apply rounded-full bg-teal/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ocean;
+  }
+  .page-heading {
+    @apply mb-8 flex animate-fade-up flex-wrap items-end justify-between gap-5;
+  }
+  .eyebrow {
+    @apply mb-1.5 text-[.68rem] font-bold uppercase tracking-[.18em] text-teal;
+  }
+  h1 {
+    @apply font-display text-4xl font-bold leading-tight tracking-tight text-ink md:text-5xl;
+  }
+  h2 {
+    @apply font-display text-xl font-bold text-ink;
+  }
+  .page-description {
+    @apply mt-2 max-w-2xl text-sm leading-6 text-ink/60;
+  }
+  .primary-button,
+  .secondary-button,
+  .danger-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border-0 px-4 py-2.5 text-sm font-bold no-underline transition duration-200;
+  }
+  .primary-button {
+    @apply bg-ocean text-white shadow-soft hover:-translate-y-0.5 hover:bg-ink;
+  }
+  .secondary-button {
+    @apply border border-line bg-white/60 text-ocean hover:border-teal hover:bg-white;
+  }
+  .danger-button {
+    @apply bg-red-50 text-red-700 hover:bg-red-100;
+  }
+  .compact {
+    @apply px-3.5 py-2;
+  }
+  .notice {
+    @apply mb-6 flex animate-fade-up items-center justify-between gap-4 rounded-lg border border-coral/40 bg-coral/10 px-4 py-3 text-sm text-ink;
+  }
+  .notice button,
+  .close-button {
+    @apply border-0 bg-transparent text-xl text-ink/50 hover:text-ink;
+  }
+  .stats-grid {
+    @apply mb-7 grid animate-fade-up grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3;
+  }
+  .stat-card {
+    @apply min-h-[135px] rounded-xl border border-line/80 bg-white/60 p-5 shadow-soft transition duration-300 hover:-translate-y-1 hover:bg-white;
+  }
+  .stat-title {
+    @apply text-xs font-bold uppercase tracking-wider text-ink/50;
+  }
+  .stat-value {
+    @apply mt-5 font-display text-4xl font-bold text-ocean;
+  }
+  .stat-card p {
+    @apply mt-1 text-xs text-ink/50;
+  }
+  .dashboard-grid,
+  .generate-layout {
+    @apply grid gap-5 lg:grid-cols-2;
+  }
+  .availability-cards {
+    @apply mt-5;
+  }
+  .panel {
+    @apply rounded-xl border border-line/70 bg-white/65 p-6 shadow-soft backdrop-blur-sm;
+  }
+  .panel-heading {
+    @apply mb-5 flex items-start justify-between gap-4;
+  }
+  .state-pill {
+    @apply inline-flex rounded-full px-2.5 py-1 text-xs font-bold;
+  }
+  .state-pill.success {
+    @apply bg-teal/15 text-teal;
+  }
+  .state-pill.pending {
+    @apply bg-coral/15 text-coral;
+  }
+  .state-pill.muted {
+    @apply bg-ink/10 text-ink/50;
+  }
+  .conflict-number {
+    @apply font-display text-4xl text-teal;
+  }
+  .conflict-panel p,
+  .availability-cards p,
+  .report-card p {
+    @apply mt-3 text-sm leading-6 text-ink/60;
+  }
+  .text-link {
+    @apply mt-4 border-0 bg-transparent p-0 text-sm font-bold text-ocean hover:text-coral;
+  }
+  .pipeline {
+    @apply flex items-center justify-between gap-2 py-5;
+  }
+  .pipeline span {
+    @apply text-xs text-ink/40;
+  }
+  .pipeline b {
+    @apply ml-1 text-ink/60;
+  }
+  .pipeline .done {
+    @apply font-bold text-teal;
+  }
+  .pipeline i {
+    @apply h-px flex-1 bg-line;
+  }
+  .form-stack {
+    @apply flex flex-col gap-4;
+  }
+  .form-grid {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .check-grid {
+    @apply mt-3 grid gap-2 sm:grid-cols-2;
+  }
+  .check-row {
+    @apply flex cursor-pointer items-center gap-3 rounded-lg border border-line/70 bg-white/60 p-3 text-sm transition hover:border-teal;
+  }
+  .check-row input {
+    @apply h-4 w-4 accent-teal;
+  }
+  .check-row b,
+  .check-row small {
+    @apply block;
+  }
+  .check-row small {
+    @apply mt-1 text-xs font-normal normal-case tracking-normal text-ink/50;
+  }
+  .form-stack label,
+  .form-field label,
+  .view-controls label {
+    @apply flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60;
+  }
+  input,
+  select {
+    @apply rounded-lg border border-line bg-white/80 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20;
+  }
+  .password-input {
+    @apply relative block;
+  }
+  .password-input input {
+    @apply w-full pr-11;
+  }
+  .password-toggle {
+    @apply absolute right-2 top-1/2 -translate-y-1/2 border-0 bg-transparent px-2 py-1 text-base font-bold text-ocean hover:text-teal;
+  }
+  .form-field {
+    @apply mb-4;
+  }
+  .generate-form {
+    @apply animate-fade-up;
+  }
+  .generate-button {
+    @apply mt-2 w-full;
+  }
+  .generation-panel {
+    @apply animate-float-in;
+  }
+  .check-list {
+    @apply mt-6 flex flex-col gap-3;
+  }
+  .checked {
+    @apply flex items-center gap-3 rounded-lg bg-mist/40 px-3 py-2.5 text-sm text-ink/75;
+  }
+  .checked span {
+    @apply grid h-5 w-5 place-items-center rounded-full bg-teal text-xs font-bold text-white;
+  }
+  .empty-state {
+    @apply flex min-h-[170px] flex-col items-center justify-center gap-3 text-center text-sm text-ink/50;
+  }
+  .empty-icon {
+    @apply font-display text-4xl text-teal/60;
+  }
+  .result-panel {
+    @apply mt-5 flex animate-float-in flex-wrap items-center gap-4 rounded-xl border p-5 shadow-soft;
+  }
+  .result-success {
+    @apply border-teal/40 bg-teal/10;
+  }
+  .result-failure {
+    @apply border-coral/40 bg-coral/10;
+  }
+  .result-icon {
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white font-bold text-teal shadow-soft;
+  }
+  .result-failure .result-icon {
+    @apply text-coral;
+  }
+  .result-copy {
+    @apply min-w-0 flex-1;
+  }
+  .result-copy > p:not(.eyebrow) {
+    @apply mt-2 text-sm text-ink/70;
+  }
+  .result-copy ul {
+    @apply mt-2 pl-5 text-xs text-ink/60;
+  }
+  .result-actions {
+    @apply flex flex-wrap gap-2;
+  }
+  .view-controls {
+    @apply flex flex-wrap gap-3;
+  }
+  .view-controls label {
+    @apply min-w-[130px];
+  }
+  .timetable-wrap,
+  .table-panel {
+    @apply overflow-x-auto;
+  }
+  .timetable,
+  .data-table,
+  .availability-table {
+    @apply w-full min-w-[680px] border-collapse text-left text-sm;
+  }
+  th {
+    @apply px-3 py-3 text-xs uppercase tracking-wider text-ink/45;
+  }
+  td {
+    @apply border-t border-line/50 px-3 py-3;
+  }
+  .timetable thead th {
+    @apply border-b border-line bg-mist/30 text-ocean;
+  }
+  .timetable tbody th {
+    @apply border-t border-line/50 text-ocean;
+  }
+  .session-cell {
+    @apply flex min-h-[88px] w-full flex-col items-start justify-center gap-1 rounded-lg border border-teal/30 bg-teal/10 px-3 text-left text-ink transition hover:-translate-y-0.5 hover:border-teal hover:bg-teal/20;
+  }
+  .session-cell b {
+    @apply text-sm;
+  }
+  .session-cell small {
+    @apply text-xs text-ink/55;
+  }
+  .free-cell {
+    @apply text-xs text-ink/30;
+  }
+  .table-toolbar {
+    @apply mb-5 flex flex-wrap items-center justify-between gap-3;
+  }
+  .table-toolbar input {
+    @apply max-w-xs;
+  }
+  .data-table b,
+  .data-table small {
+    @apply block;
+  }
+  .data-table small {
+    @apply mt-1 text-xs text-ink/45;
+  }
+  .icon-button {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white/80 p-0 text-lg leading-none text-ink/70 shadow-sm transition hover:border-teal hover:bg-white hover:text-ocean;
+  }
+  .data-table td:last-child {
+    @apply whitespace-nowrap;
+  }
+  .data-table td:last-child .icon-button + .icon-button {
+    @apply ml-2;
+  }
+  .availability-table td,
+  .availability-table th {
+    @apply text-center;
+  }
+  .availability-table th:first-child {
+    @apply text-left;
+  }
+  .availability-open,
+  .availability-closed {
+    @apply inline-block rounded-full px-2 py-1 text-xs;
+  }
+  .availability-open {
+    @apply bg-teal/15 text-teal;
+  }
+  .availability-closed {
+    @apply bg-ink/5 text-ink/30;
+  }
+  .report-grid {
+    @apply grid gap-5 sm:grid-cols-2;
+  }
+  .report-card {
+    @apply animate-fade-up transition hover:-translate-y-1;
+  }
+  .report-mark {
+    @apply text-3xl text-coral;
+  }
+  .login-screen {
+    @apply grid min-h-screen bg-paper lg:grid-cols-[.8fr_1.2fr];
+  }
+  .login-panel {
+    @apply flex flex-col justify-center px-7 py-12 sm:px-16 lg:px-24;
+  }
+  .login-panel h1 {
+    @apply mt-8 max-w-lg;
+  }
+  .login-copy {
+    @apply mb-8 mt-3 max-w-md text-base leading-7 text-ink/60;
+  }
+  .login-panel small {
+    @apply mt-5 text-xs text-ink/40;
+  }
+  .form-error {
+    @apply mt-4 rounded-lg border border-coral/40 bg-coral/10 px-3 py-2 text-sm text-coral;
+  }
+  .form-success {
+    @apply mt-4 rounded-lg border border-teal/40 bg-teal/10 px-3 py-2 text-sm text-teal;
+  }
+  .auth-switch {
+    @apply self-start;
+  }
+  .login-art {
+    @apply relative hidden overflow-hidden bg-ocean p-12 lg:block;
+  }
+  .login-art::before {
+    content: '';
+    @apply absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal/50;
+  }
+  .login-art::after {
+    content: '';
+    @apply absolute -bottom-32 -left-24 h-96 w-96 rounded-full border-[40px] border-coral/50;
+  }
+  .art-note {
+    @apply relative z-10 mb-20 flex items-center gap-2 text-sm font-bold text-mist;
+  }
+  .status-dot {
+    @apply h-2.5 w-2.5 animate-pulse rounded-full bg-coral;
+  }
+  .art-grid {
+    @apply relative z-10 grid max-w-2xl grid-cols-5 gap-3 rounded-2xl border border-white/20 bg-white/10 p-5 text-center text-xs text-mist shadow-lift backdrop-blur;
+  }
+  .art-grid b {
+    @apply pb-2 text-coral;
+  }
+  .art-grid span {
+    @apply self-center text-left text-xs text-mist/60;
+  }
+  .art-grid strong {
+    @apply rounded-lg bg-white/15 px-3 py-6 text-sm text-white;
+  }
+  .loading-screen {
+    @apply grid min-h-screen place-items-center bg-paper font-display text-2xl text-ocean;
+  }
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 grid place-items-center bg-ink/50 p-5 backdrop-blur-sm;
+  }
+  .modal {
+    @apply relative w-full max-w-md animate-float-in rounded-xl bg-paper p-7 shadow-lift;
+  }
+  .close-button {
+    @apply absolute right-4 top-3;
+  }
+  .modal-location {
+    @apply mt-2 text-sm text-ink/55;
+  }
+  .detail-list {
+    @apply mt-6 grid grid-cols-2 gap-y-3 text-sm;
+  }
+  .detail-list dt {
+    @apply font-bold text-ink/50;
+  }
+  .detail-list dd {
+    @apply m-0 text-right text-ink;
+  }
+  .modal-actions {
+    @apply mt-7 flex justify-end gap-2;
+  }
+  .report-details {
+    @apply mt-5 flex max-h-80 flex-col gap-2 overflow-y-auto pl-5 text-sm text-ink/70;
+  }
 }
 
 @media (max-width: 900px) {
-  .app-shell { @apply flex-col; }
-  .sidebar { @apply w-full border-b border-r-0 px-4 py-4; }
-  .sidebar-caption { @apply mb-4; }
-  nav { @apply grid grid-cols-2 gap-1 sm:grid-cols-4; }
-  .sidebar-bottom { @apply mt-5 flex-row items-center justify-between gap-3; }
-  .generate-link { @apply px-3 py-2; }
-  .content { @apply px-4 py-6; }
-  .topbar { @apply mb-8; }
+  .app-shell {
+    @apply flex-col;
+  }
+  .sidebar {
+    @apply w-full border-b border-r-0 px-4 py-4;
+  }
+  .sidebar-caption {
+    @apply mb-4;
+  }
+  nav {
+    @apply grid grid-cols-2 gap-1 sm:grid-cols-4;
+  }
+  .sidebar-bottom {
+    @apply mt-5 flex-row items-center justify-between gap-3;
+  }
+  .generate-link {
+    @apply px-3 py-2;
+  }
+  .content {
+    @apply px-4 py-6;
+  }
+  .topbar {
+    @apply mb-8;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

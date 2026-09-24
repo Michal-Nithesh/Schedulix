@@ -7,6 +7,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
+    "format": "prettier --write ../backend/src ../frontend/src ../*.md ../backend/package.json ../frontend/package.json",
+    "format:check": "prettier --check ../backend/src ../frontend/src ../*.md ../backend/package.json ../frontend/package.json",
     "seed:demo-users": "node src/data/seedDemoUsers.js"
   },
   "dependencies": {
@@ -16,6 +18,7 @@
     "express": "^4.19.2"
   },
   "devDependencies": {
+    "prettier": "^3.6.2",
     "supertest": "^7.3.0"
   }
 }

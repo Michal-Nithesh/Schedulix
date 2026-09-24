@@ -76,7 +76,14 @@ test('does not schedule department subjects not assigned to a division', () => {
 test('detects faculty conflict', () => {
   const result = createValidator([
     entry({ id: 'e1', facultyId: 'fac-f1', roomId: 'room-101', timeSlotId: 'mon-1' }),
-    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' }),
+    entry({
+      id: 'e2',
+      divisionId: 'div-cse-b',
+      subjectId: 'sub-java',
+      facultyId: 'fac-f1',
+      roomId: 'room-102',
+      timeSlotId: 'mon-1',
+    }),
   ]).validate();
   assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT'));
 });
@@ -84,7 +91,14 @@ test('detects faculty conflict', () => {
 test('detects classroom conflict', () => {
   const result = createValidator([
     entry({ id: 'e1', roomId: 'room-101' }),
-    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f3', roomId: 'room-101', timeSlotId: 'mon-1' }),
+    entry({
+      id: 'e2',
+      divisionId: 'div-cse-b',
+      subjectId: 'sub-java',
+      facultyId: 'fac-f3',
+      roomId: 'room-101',
+      timeSlotId: 'mon-1',
+    }),
   ]).validate();
   assert.ok(result.conflicts.some((conflict) => conflict.type === 'ROOM_CONFLICT'));
 });
@@ -226,7 +240,14 @@ test('backtracks after an earlier resource choice blocks a later task', () => {
 test('manual edits remain independently validatable', () => {
   const result = createValidator([
     entry({ id: 'e1', timeSlotId: 'mon-1' }),
-    entry({ id: 'e2', divisionId: 'div-cse-b', subjectId: 'sub-java', facultyId: 'fac-f1', roomId: 'room-102', timeSlotId: 'mon-1' }),
+    entry({
+      id: 'e2',
+      divisionId: 'div-cse-b',
+      subjectId: 'sub-java',
+      facultyId: 'fac-f1',
+      roomId: 'room-102',
+      timeSlotId: 'mon-1',
+    }),
   ]).validate();
   assert.equal(result.valid, false);
   assert.ok(result.conflicts.some((conflict) => conflict.type === 'FACULTY_CONFLICT'));

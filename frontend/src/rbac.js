@@ -57,7 +57,9 @@ export const ROLE_PERMISSIONS = {
 };
 
 export function normalizeRole(role) {
-  const value = String(role || '').trim().toUpperCase();
+  const value = String(role || '')
+    .trim()
+    .toUpperCase();
   if (value === 'ADMIN' || value === 'ADMINISTRATOR') return 'ADMINISTRATOR';
   if (value === 'SCHEDULER') return 'SCHEDULER';
   if (value === 'VIEWER') return 'VIEWER';

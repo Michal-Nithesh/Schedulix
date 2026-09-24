@@ -36,12 +36,6 @@ export const ROLE_LABELS = {
   VIEWER: 'Viewer',
 };
 
-export const DEMO_USERS = [
-  { id: 'user-admin', name: 'Administrator', email: 'admin@timetable.demo', role: 'ADMINISTRATOR' },
-  { id: 'user-scheduler', name: 'Scheduler', email: 'scheduler@timetable.demo', role: 'SCHEDULER' },
-  { id: 'user-viewer', name: 'Viewer', email: 'viewer@timetable.demo', role: 'VIEWER' },
-];
-
 export const ROLE_PERMISSIONS = {
   ADMINISTRATOR: Object.values(PERMISSIONS),
   SCHEDULER: [
@@ -50,9 +44,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_TIMETABLE,
     PERMISSIONS.VIEW_VERSIONS,
     PERMISSIONS.VIEW_REPORTS,
+    PERMISSIONS.MANAGE_DIVISIONS,
+    PERMISSIONS.MANAGE_SUBJECTS,
     PERMISSIONS.MANAGE_AVAILABILITY,
     PERMISSIONS.MANAGE_REQUIREMENTS,
     PERMISSIONS.MANAGE_DIVISION_SUBJECTS,
+    PERMISSIONS.MANAGE_FACULTY,
+    PERMISSIONS.MANAGE_CLASSROOMS,
     PERMISSIONS.GENERATE_TIMETABLE,
     PERMISSIONS.EDIT_TIMETABLE,
     PERMISSIONS.VALIDATE_TIMETABLE,
@@ -69,7 +67,9 @@ export const ROLE_PERMISSIONS = {
 };
 
 export function normalizeRole(role) {
-  const value = String(role || '').trim().toUpperCase();
+  const value = String(role || '')
+    .trim()
+    .toUpperCase();
   if (value === 'ADMIN' || value === 'ADMINISTRATOR') return 'ADMINISTRATOR';
   if (value === 'SCHEDULER') return 'SCHEDULER';
   if (value === 'VIEWER') return 'VIEWER';
@@ -107,7 +107,10 @@ export async function requireAuth(req, res, next) {
   }
 
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
     if (authError || !user) return res.status(401).json(errorResponse('Invalid or expired session.', 'UNAUTHORIZED'));
 
     const { data: profile, error: profileError } = await supabase
@@ -115,7 +118,8 @@ export async function requireAuth(req, res, next) {
       .select('id, display_name, role')
       .eq('id', user.id)
       .single();
-    if (profileError || !profile) return res.status(403).json(errorResponse('No Schedulix profile exists for this account.', 'PROFILE_REQUIRED'));
+    if (profileError || !profile)
+      return res.status(403).json(errorResponse('No Schedulix profile exists for this account.', 'PROFILE_REQUIRED'));
 
     req.user = { id: user.id, email: user.email, name: profile.display_name, role: normalizeRole(profile.role) };
     return next();
@@ -143,7 +147,11 @@ export function requirePermission(permission) {
     const role = normalizeRole(req.user?.role);
 
     if (!role || !canAccess(role, permission)) {
-      return res.status(403).json(errorResponse(`You do not have permission to ${permission.toLowerCase().replace(/_/g, ' ')}.`, 'FORBIDDEN'));
+      return res
+        .status(403)
+        .json(
+          errorResponse(`You do not have permission to ${permission.toLowerCase().replace(/_/g, ' ')}.`, 'FORBIDDEN'),
+        );
     }
 
     next();

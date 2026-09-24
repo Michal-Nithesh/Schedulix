@@ -48,12 +48,12 @@ export class TimetableGenerator {
   getRequirementRecord(subjectId, divisionId) {
     if (Array.isArray(this.subjectRequirementsMap)) {
       return this.subjectRequirementsMap.find(
-        (requirement) => requirement.subjectId === subjectId && (!requirement.divisionId || requirement.divisionId === divisionId),
+        (requirement) =>
+          requirement.subjectId === subjectId && (!requirement.divisionId || requirement.divisionId === divisionId),
       );
     }
 
-    return this.subjectRequirementsMap[`${subjectId}:${divisionId}`]
-      || this.subjectRequirementsMap[subjectId];
+    return this.subjectRequirementsMap[`${subjectId}:${divisionId}`] || this.subjectRequirementsMap[subjectId];
   }
 
   getDivisionSubjects(division) {
@@ -82,15 +82,16 @@ export class TimetableGenerator {
 
   isRoomEligible(room, division, subject) {
     const requirement = this.getSubjectRequirement(subject.id, division);
-    return room.roomType === requirement.roomType
-      && Number(room.capacity) >= Math.max(Number(division.studentCount), requirement.requiredSeats);
+    return (
+      room.roomType === requirement.roomType &&
+      Number(room.capacity) >= Math.max(Number(division.studentCount), requirement.requiredSeats)
+    );
   }
 
   sortTimeSlots() {
-    return [...this.timeSlots].sort((a, b) => (
-      (dayOrder.get(a.day) || 99) - (dayOrder.get(b.day) || 99)
-      || a.period - b.period
-    ));
+    return [...this.timeSlots].sort(
+      (a, b) => (dayOrder.get(a.day) || 99) - (dayOrder.get(b.day) || 99) || a.period - b.period,
+    );
   }
 
   buildTasks() {
@@ -129,30 +130,32 @@ export class TimetableGenerator {
   }
 
   getFacultyCandidates(task, slot, state) {
-    return this.faculty.filter((member) => (
-      member.qualifications?.includes(task.subject.id)
-      && this.hasFacultyAvailability(member.id, slot.id)
-      && !state.facultySlots.has(this.key(member.id, slot.id))
-    ));
+    return this.faculty.filter(
+      (member) =>
+        member.qualifications?.includes(task.subject.id) &&
+        this.hasFacultyAvailability(member.id, slot.id) &&
+        !state.facultySlots.has(this.key(member.id, slot.id)),
+    );
   }
 
   getRoomCandidates(task, slot, state) {
-    return this.classrooms.filter((room) => (
-      this.isRoomEligible(room, task.division, task.subject)
-      && this.hasRoomAvailability(room.id, slot.id)
-      && !state.roomSlots.has(this.key(room.id, slot.id))
-    ));
+    return this.classrooms.filter(
+      (room) =>
+        this.isRoomEligible(room, task.division, task.subject) &&
+        this.hasRoomAvailability(room.id, slot.id) &&
+        !state.roomSlots.has(this.key(room.id, slot.id)),
+    );
   }
 
   getStaticCandidateCount(task, slots) {
     let count = 0;
     for (const slot of slots) {
-      const facultyAvailable = this.faculty.some((member) => (
-        member.qualifications?.includes(task.subject.id) && this.hasFacultyAvailability(member.id, slot.id)
-      ));
-      const roomAvailable = this.classrooms.some((room) => (
-        this.isRoomEligible(room, task.division, task.subject) && this.hasRoomAvailability(room.id, slot.id)
-      ));
+      const facultyAvailable = this.faculty.some(
+        (member) => member.qualifications?.includes(task.subject.id) && this.hasFacultyAvailability(member.id, slot.id),
+      );
+      const roomAvailable = this.classrooms.some(
+        (room) => this.isRoomEligible(room, task.division, task.subject) && this.hasRoomAvailability(room.id, slot.id),
+      );
       if (facultyAvailable && roomAvailable) count += 1;
     }
     return count;
@@ -168,13 +171,22 @@ export class TimetableGenerator {
     score += subjectDays.has(slot.day) ? -12 : 10;
     score += divisionPeriods.has(slot.period) ? -4 : 2;
     score += facultyPeriods.has(slot.period) ? -5 : 3;
-    score -= Math.max(0, room.capacity - Math.max(task.division.studentCount, this.getSubjectRequirement(task.subject.id, task.division).requiredSeats)) * 0.05;
+    score -=
+      Math.max(
+        0,
+        room.capacity -
+          Math.max(
+            task.division.studentCount,
+            this.getSubjectRequirement(task.subject.id, task.division).requiredSeats,
+          ),
+      ) * 0.05;
     if (slot.period === 1 || slot.period === 5) score -= 2;
 
-    const futureFacultySlots = this.timeSlots.filter((candidateSlot) => (
-      this.hasFacultyAvailability(faculty.id, candidateSlot.id)
-      && !state.facultySlots.has(this.key(faculty.id, candidateSlot.id))
-    )).length;
+    const futureFacultySlots = this.timeSlots.filter(
+      (candidateSlot) =>
+        this.hasFacultyAvailability(faculty.id, candidateSlot.id) &&
+        !state.facultySlots.has(this.key(faculty.id, candidateSlot.id)),
+    ).length;
     score += Math.min(futureFacultySlots, 10) * 0.1;
 
     return score;
@@ -195,9 +207,22 @@ export class TimetableGenerator {
 
       if (facultyCandidates.length === 0) {
         const qualified = this.faculty.filter((member) => member.qualifications?.includes(task.subject.id));
-        if (qualified.length === 0) this.addReason(reasons, 'NO_QUALIFIED_FACULTY', slot.id, `No faculty member is qualified to teach ${task.subject.name}.`);
-        else if (!qualified.some((member) => this.hasFacultyAvailability(member.id, slot.id))) this.addReason(reasons, 'FACULTY_UNAVAILABLE', slot.id, `Qualified faculty is unavailable for ${task.subject.name}.`);
-        else this.addReason(reasons, 'FACULTY_OCCUPIED', slot.id, `All qualified faculty are teaching another division.`);
+        if (qualified.length === 0)
+          this.addReason(
+            reasons,
+            'NO_QUALIFIED_FACULTY',
+            slot.id,
+            `No faculty member is qualified to teach ${task.subject.name}.`,
+          );
+        else if (!qualified.some((member) => this.hasFacultyAvailability(member.id, slot.id)))
+          this.addReason(
+            reasons,
+            'FACULTY_UNAVAILABLE',
+            slot.id,
+            `Qualified faculty is unavailable for ${task.subject.name}.`,
+          );
+        else
+          this.addReason(reasons, 'FACULTY_OCCUPIED', slot.id, `All qualified faculty are teaching another division.`);
       }
 
       if (roomCandidates.length === 0) {
@@ -205,7 +230,14 @@ export class TimetableGenerator {
         if (eligibleRooms.length === 0) {
           const requirement = this.getSubjectRequirement(task.subject.id, task.division);
           const typeMatches = this.classrooms.some((room) => room.roomType === requirement.roomType);
-          this.addReason(reasons, typeMatches ? 'ROOM_CAPACITY' : 'ROOM_TYPE_MISMATCH', slot.id, typeMatches ? `No ${requirement.roomType} has enough capacity.` : `No ${requirement.roomType} is available.`);
+          this.addReason(
+            reasons,
+            typeMatches ? 'ROOM_CAPACITY' : 'ROOM_TYPE_MISMATCH',
+            slot.id,
+            typeMatches
+              ? `No ${requirement.roomType} has enough capacity.`
+              : `No ${requirement.roomType} is available.`,
+          );
         } else if (!eligibleRooms.some((room) => this.hasRoomAvailability(room.id, slot.id))) {
           this.addReason(reasons, 'ROOM_UNAVAILABLE', slot.id, `No suitable classroom is available.`);
         } else {
@@ -265,7 +297,8 @@ export class TimetableGenerator {
     state.subjectDays.set(subjectKey, subjectDays);
     this.addPeriod(state.divisionPeriods, task.division.id, candidate.slot.period);
     this.addPeriod(state.facultyPeriods, candidate.faculty.id, candidate.slot.period);
-    if (state.entries.length > state.bestEntries.length) state.bestEntries = state.entries.map((entry) => ({ ...entry }));
+    if (state.entries.length > state.bestEntries.length)
+      state.bestEntries = state.entries.map((entry) => ({ ...entry }));
   }
 
   addPeriod(map, resourceId, period) {
@@ -283,7 +316,12 @@ export class TimetableGenerator {
     const subjectKey = `${task.division.id}:${task.subject.id}`;
     const subjectDays = state.subjectDays.get(subjectKey);
     if (subjectDays) {
-      const stillUsesDay = state.entries.some((entry) => entry.divisionId === task.division.id && entry.subjectId === task.subject.id && this.timeSlots.find((slot) => slot.id === entry.timeSlotId)?.day === candidate.slot.day);
+      const stillUsesDay = state.entries.some(
+        (entry) =>
+          entry.divisionId === task.division.id &&
+          entry.subjectId === task.subject.id &&
+          this.timeSlots.find((slot) => slot.id === entry.timeSlotId)?.day === candidate.slot.day,
+      );
       if (!stillUsesDay) subjectDays.delete(candidate.slot.day);
       if (subjectDays.size === 0) state.subjectDays.delete(subjectKey);
     }

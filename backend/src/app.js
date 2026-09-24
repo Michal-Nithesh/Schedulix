@@ -11,10 +11,12 @@ const frontendOrigins = new Set([
   env.frontendUrl.replace('127.0.0.1', 'localhost'),
 ]);
 
-app.use(cors({
-  origin: (origin, callback) => callback(null, !origin || frontendOrigins.has(origin)),
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => callback(null, !origin || frontendOrigins.has(origin)),
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {

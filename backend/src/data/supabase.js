@@ -26,7 +26,19 @@ async function read(table, columns = '*') {
 }
 
 export async function loadSchedulingData() {
-  const [departments, divisions, subjects, facultyRows, facultySubjects, classrooms, timeSlots, facultyAvailability, roomAvailability, subjectRequirements, divisionSubjectRows] = await Promise.all([
+  const [
+    departments,
+    divisions,
+    subjects,
+    facultyRows,
+    facultySubjects,
+    classrooms,
+    timeSlots,
+    facultyAvailability,
+    roomAvailability,
+    subjectRequirements,
+    divisionSubjectRows,
+  ] = await Promise.all([
     read('departments'),
     read('divisions'),
     read('subjects'),
@@ -63,8 +75,17 @@ export async function loadSchedulingData() {
   return {
     departments,
     divisions: divisions.map((row) => ({ ...row, departmentId: row.department_id, studentCount: row.student_count })),
-    subjects: subjects.map((row) => ({ ...row, departmentId: row.department_id, requiredSessions: row.required_sessions, roomType: row.room_type })),
-    faculty: facultyRows.map((row) => ({ ...row, departmentId: row.department_id, qualifications: qualifications[row.id] || [] })),
+    subjects: subjects.map((row) => ({
+      ...row,
+      departmentId: row.department_id,
+      requiredSessions: row.required_sessions,
+      roomType: row.room_type,
+    })),
+    faculty: facultyRows.map((row) => ({
+      ...row,
+      departmentId: row.department_id,
+      qualifications: qualifications[row.id] || [],
+    })),
     classrooms: classrooms.map((row) => ({ ...row, roomType: row.room_type })),
     timeSlots: timeSlots.map((row) => ({ ...row, startTime: row.start_time, endTime: row.end_time })),
     facultyAvailabilityMap,
@@ -153,22 +174,37 @@ export async function getTimetableVersions() {
 
 export async function updateEntry(versionId, entryId, entry) {
   assertSupabaseConfigured();
-  const { data, error } = await supabase.from('timetable_entries').update({
-    division_id: entry.divisionId,
-    subject_id: entry.subjectId,
-    faculty_id: entry.facultyId,
-    classroom_id: entry.roomId,
-    time_slot_id: entry.timeSlotId,
-  }).eq('id', entryId).eq('timetable_version_id', versionId).select().single();
+  const { data, error } = await supabase
+    .from('timetable_entries')
+    .update({
+      division_id: entry.divisionId,
+      subject_id: entry.subjectId,
+      faculty_id: entry.facultyId,
+      classroom_id: entry.roomId,
+      time_slot_id: entry.timeSlotId,
+    })
+    .eq('id', entryId)
+    .eq('timetable_version_id', versionId)
+    .select()
+    .single();
   if (error) throw error;
   return toEntry(data);
 }
 
 export async function publishVersion(versionId) {
   assertSupabaseConfigured();
-  const { error: archiveError } = await supabase.from('timetable_versions').update({ status: 'archived' }).eq('status', 'published');
+  const { error: archiveError } = await supabase
+    .from('timetable_versions')
+    .update({ status: 'archived' })
+    .eq('status', 'published');
   if (archiveError) throw archiveError;
-  const { data, error } = await supabase.from('timetable_versions').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', versionId).eq('status', 'draft').select().single();
+  const { data, error } = await supabase
+    .from('timetable_versions')
+    .update({ status: 'published', published_at: new Date().toISOString() })
+    .eq('id', versionId)
+    .eq('status', 'draft')
+    .select()
+    .single();
   if (error) throw error;
   return data;
 }
