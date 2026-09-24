@@ -18,6 +18,7 @@ app.use(
   cors({
     origin: (origin, callback) => callback(null, !origin || allowedOrigins.has(origin.replace(/\/+$/, ''))),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
