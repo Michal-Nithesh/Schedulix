@@ -5,16 +5,20 @@ import apiRoutes from './routes/api.js';
 
 const app = express();
 
-const frontendOrigins = new Set([
-  env.frontendUrl,
-  env.frontendUrl.replace('localhost', '127.0.0.1'),
-  env.frontendUrl.replace('127.0.0.1', 'localhost'),
-]);
+const allowedOrigins = new Set(
+  [...new Set([env.frontendUrl, ...env.corsOrigins])].flatMap((origin) => [
+    origin,
+    origin.replace(/\/+$/, ''),
+    origin.replace('localhost', '127.0.0.1'),
+    origin.replace('127.0.0.1', 'localhost'),
+  ]),
+);
 
 app.use(
   cors({
-    origin: (origin, callback) => callback(null, !origin || frontendOrigins.has(origin)),
+    origin: (origin, callback) => callback(null, !origin || allowedOrigins.has(origin.replace(/\/+$/, ''))),
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
 app.use(express.json());

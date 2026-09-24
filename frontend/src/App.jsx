@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import logoUrl from './public/image.png';
 import { PERMISSIONS, ROLE_LABELS, canAccess, formatRoleLabel, normalizeRole } from './rbac.js';
@@ -33,17 +33,28 @@ function authHeaders(user) {
   };
 }
 
-async function fetchData(path, user) {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(user ? authHeaders(user) : {}),
-    },
-  });
+const dataRequests = new Map();
 
-  if (!response.ok) throw new Error(`Unable to load ${path}`);
-  const payload = await response.json();
-  return payload.data;
+async function fetchData(path, user) {
+  const key = `${path}|${user?.id || 'anon'}`;
+  const inFlight = dataRequests.get(key);
+  if (inFlight) return inFlight;
+
+  const promise = (async () => {
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(user ? authHeaders(user) : {}),
+      },
+    });
+
+    if (!response.ok) throw new Error(`Unable to load ${path}`);
+    const payload = await response.json();
+    return payload.data;
+  })().finally(() => dataRequests.delete(key));
+
+  dataRequests.set(key, promise);
+  return promise;
 }
 
 function Logo({ linked = false, className = '' }) {
@@ -85,7 +96,7 @@ function ProtectedRoute({ user, permission, children }) {
   return children;
 }
 
-function LoginPage({ onLogin }) {
+function LoginPage({ onLogin, notice }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -208,6 +219,7 @@ function LoginPage({ onLogin }) {
           </form>
         )}
         {error && <p className="form-error">{error}</p>}
+        {notice && <p className="form-error">{notice}</p>}
         {message && <p className="form-success">{message}</p>}
         {!showReset && (
           <button className="text-link auth-switch" type="button" onClick={() => setShowReset(true)}>
@@ -278,22 +290,112 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const profileInFlight = useRef(new Map());
+  const signOutInFlight = useRef(false);
+
+  function isAuthFailure(error) {
+    return error && error.status === 401;
+  }
 
   async function loadProfile(session) {
     if (!session) {
       setUser(null);
+      return null;
+    }
+    const key = session.user.id;
+    const inFlight = profileInFlight.current.get(key);
+    if (inFlight) return inFlight;
+
+    const promise = (async () => {
+      let response;
+      try {
+        response = await fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      } catch (error) {
+        const networkError = new Error('Unable to reach the Schedulix backend. Your session was kept.');
+        networkError.status = 0;
+        throw networkError;
+      }
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        const authError = new Error(
+          payload.error?.message || 'Your session is invalid or has expired. Please sign in again.',
+        );
+        authError.status = 401;
+        throw authError;
+      }
+      if (!response.ok) {
+        const profileError = new Error(
+          payload.error?.message || `Unable to load your Schedulix profile (HTTP ${response.status}).`,
+        );
+        profileError.status = response.status;
+        throw profileError;
+      }
+      const loadedUser = {
+        session,
+        id: session.user.id,
+        email: session.user.email,
+        role: normalizeRole(payload.data?.user?.role),
+      };
+      setUser(loadedUser);
+      return loadedUser;
+    })().finally(() => profileInFlight.current.delete(key));
+
+    profileInFlight.current.set(key, promise);
+    return promise;
+  }
+
+  async function clearAuthState() {
+    if (signOutInFlight.current) return;
+    signOutInFlight.current = true;
+    try {
+      if (supabase) {
+        try {
+          await supabase.auth.signOut();
+        } catch (error) {
+          console.warn('Sign out from Supabase failed:', error.message);
+        }
+      }
+      setUser(null);
+      setData({ departments: [], divisions: [], subjects: [], faculty: [], classrooms: [], timeSlots: [] });
+      setEntries([]);
+      setConflicts([]);
+      setTimetableStatus('EMPTY');
+      setNotice('');
+    } finally {
+      signOutInFlight.current = false;
+    }
+  }
+
+  async function restoreProfile(session) {
+    if (!session) {
+      setUser(null);
+      setNotice('');
+      setAuthLoading(false);
       return;
     }
-    const response = await fetch(`${API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error?.message || 'Unable to load your Schedulix profile.');
-    setUser({ session, id: session.user.id, email: session.user.email, role: normalizeRole(payload.data.user.role) });
+    try {
+      await loadProfile(session);
+      setNotice('');
+      setAuthLoading(false);
+    } catch (error) {
+      setAuthLoading(false);
+      if (isAuthFailure(error)) {
+        await clearAuthState();
+      } else {
+        setUser(null);
+        setNotice(
+          error.status === 0
+            ? 'Your session is still valid, but the Schedulix backend could not be reached. Try again in a moment.'
+            : error.message,
+        );
+      }
+    }
   }
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
@@ -310,32 +412,31 @@ function App() {
       })
       .catch((error) => setNotice(`${error.message}. Start the backend on port 4000.`))
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     if (!supabase) {
       setAuthLoading(false);
       return undefined;
     }
-    supabase.auth.getSession().then(({ data: { session } }) =>
-      loadProfile(session)
-        .catch(() => setUser(null))
-        .finally(() => setAuthLoading(false)),
-    );
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setUser(null);
-        setAuthLoading(false);
-      } else loadProfile(session).catch(() => setUser(null));
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled) return restoreProfile(session);
     });
-    return () => listener.subscription.unsubscribe();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!cancelled) return restoreProfile(session);
+    });
+    return () => {
+      cancelled = true;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   async function login(session) {
     try {
       await loadProfile(session);
     } catch (error) {
-      await supabase.auth.signOut();
+      if (isAuthFailure(error)) await clearAuthState();
       throw error;
     }
   }
@@ -357,7 +458,7 @@ function App() {
   }
 
   if (authLoading) return <div className="loading-screen">Loading Schedulix...</div>;
-  if (!user) return <LoginPage onLogin={login} />;
+  if (!user) return <LoginPage onLogin={login} notice={notice} />;
   if (loading) return <div className="loading-screen">Loading Schedulix workspace...</div>;
 
   return (
@@ -1555,7 +1656,7 @@ function AvailabilityPage({ user, data }) {
         setRoomAvailability(roomRows);
       })
       .catch((error) => setNotice(error.message));
-  }, [user]);
+  }, [user?.id]);
 
   const selectedResource = tab === 'faculty' ? selectedFaculty : selectedRoom;
   const rows = tab === 'faculty' ? facultyAvailability : roomAvailability;
@@ -1684,7 +1785,7 @@ function DivisionSubjectsPage({ user, data, setNotice }) {
     fetchData('/division-subjects', user)
       .then((mapping) => setSelected((mapping[divisionId] || []).map((item) => item.subjectId || item)))
       .catch(() => setSelected([]));
-  }, [divisionId, user]);
+  }, [divisionId, user?.id]);
   function toggle(subjectId) {
     setSelected((current) =>
       current.includes(subjectId) ? current.filter((id) => id !== subjectId) : [...current, subjectId],
@@ -1870,7 +1971,7 @@ function VersionsPage({ user }) {
     fetchData('/timetable/versions', user)
       .then(setVersions)
       .catch(() => setVersions([]));
-  }, [user]);
+  }, [user?.id]);
   return (
     <>
       <PageHeading
@@ -2001,7 +2102,7 @@ function UsersPage({ user }) {
     fetchData('/users', user)
       .then((items) => setUsers(items))
       .catch(() => setUsers([]));
-  }, [user]);
+  }, [user?.id]);
 
   async function updateRole(id, role) {
     setSavingId(id);
@@ -2169,7 +2270,7 @@ function AuditLogsPage({ user }) {
     fetchData('/audit-logs', user)
       .then(setEntries)
       .catch(() => setEntries([]));
-  }, [user]);
+  }, [user?.id]);
   return (
     <>
       <PageHeading
@@ -2209,7 +2310,7 @@ function SettingsPage({ user }) {
     fetchData('/settings', user)
       .then(setSettings)
       .catch(() => setSettings({ appName: 'Schedulix', maintenanceMode: false, defaultRole: 'SCHEDULER' }));
-  }, [user]);
+  }, [user?.id]);
   return (
     <>
       <PageHeading

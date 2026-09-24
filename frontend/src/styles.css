@@ -146,7 +146,7 @@
     @apply px-3.5 py-2;
   }
   .notice {
-    @apply mb-6 flex animate-fade-up items-center justify-between gap-4 rounded-lg border border-coral/40 bg-coral/10 px-4 py-3 text-sm text-ink;
+    @apply mb-6 flex animate-fade-up items-center justify-between gap-4 rounded-lg border border-teal/40 bg-teal/10 px-4 py-3 text-sm text-teal;
   }
   .notice button,
   .close-button {

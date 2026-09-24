@@ -95,11 +95,18 @@ export function resolveUser(request) {
 }
 
 export async function requireAuth(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    console.warn(`[auth] Missing Bearer token on ${req.method} ${req.originalUrl}`);
+    return res.status(401).json(errorResponse('Missing authorization token.', 'UNAUTHORIZED'));
+  }
+
+  const token = authHeader.substring(7);
 
   if (!token) {
-    return res.status(401).json(errorResponse('Authentication required.', 'UNAUTHORIZED'));
+    console.warn(`[auth] Empty Bearer token on ${req.method} ${req.originalUrl}`);
+    return res.status(401).json(errorResponse('Missing authorization token.', 'UNAUTHORIZED'));
   }
 
   if (!isSupabaseConfigured) {
@@ -111,19 +118,26 @@ export async function requireAuth(req, res, next) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser(token);
-    if (authError || !user) return res.status(401).json(errorResponse('Invalid or expired session.', 'UNAUTHORIZED'));
+    if (authError || !user) {
+      const reason = authError?.code || authError?.status || 'invalid or expired token';
+      console.warn(`[auth] Rejected Bearer token on ${req.method} ${req.originalUrl}: ${reason}`);
+      return res.status(401).json(errorResponse('Invalid or expired token.', 'UNAUTHORIZED'));
+    }
 
     const { data: profile, error: profileError } = await supabase
       .from('app_users')
       .select('id, display_name, role')
       .eq('id', user.id)
       .single();
-    if (profileError || !profile)
+    if (profileError || !profile) {
+      console.warn(`[auth] Authenticated user ${user.id} has no Schedulix profile on ${req.method} ${req.originalUrl}`);
       return res.status(403).json(errorResponse('No Schedulix profile exists for this account.', 'PROFILE_REQUIRED'));
+    }
 
     req.user = { id: user.id, email: user.email, name: profile.display_name, role: normalizeRole(profile.role) };
     return next();
   } catch (error) {
+    console.error(`[auth] Unexpected error validating token on ${req.method} ${req.originalUrl}:`, error.message);
     return next(error);
   }
 }
