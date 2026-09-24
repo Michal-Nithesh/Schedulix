@@ -32,6 +32,19 @@ Schedulix addresses this by:
 
 ---
 
+## Screenshots
+
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Timetable
+![Generated Timetable](docs/screenshots/timetable.png)
+
+### Role-Based Access Control
+![User Management](docs/screenshots/users.png)
+
+---
+
 ## Key features
 
 | Feature | Description |
