@@ -1,0 +1,124 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e5eefb;
+  background: #0f172a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+  background: #0b1220;
+}
+
+body {
+  min-height: 100vh;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  background: #111827;
+  padding: 24px 18px;
+  border-right: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-link {
+  color: #dbeafe;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  transition: 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.content {
+  flex: 1;
+  padding: 32px;
+}
+
+h1 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 2.1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 16px;
+  padding: 18px 20px;
+  min-height: 120px;
+}
+
+.stat-title {
+  color: #9fb4d4;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  margin-top: 18px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  }
+
+  .content {
+    padding: 24px 18px;
+  }
+}
