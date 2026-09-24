@@ -78,8 +78,17 @@
   .pipeline .done { @apply font-bold text-teal; }
   .pipeline i { @apply h-px flex-1 bg-line; }
   .form-stack { @apply flex flex-col gap-4; }
+  .form-grid { @apply grid gap-4 sm:grid-cols-2; }
+  .check-grid { @apply mt-3 grid gap-2 sm:grid-cols-2; }
+  .check-row { @apply flex cursor-pointer items-center gap-3 rounded-lg border border-line/70 bg-white/60 p-3 text-sm transition hover:border-teal; }
+  .check-row input { @apply h-4 w-4 accent-teal; }
+  .check-row b, .check-row small { @apply block; }
+  .check-row small { @apply mt-1 text-xs font-normal normal-case tracking-normal text-ink/50; }
   .form-stack label, .form-field label, .view-controls label { @apply flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-ink/60; }
   input, select { @apply rounded-lg border border-line bg-white/80 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-ink outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20; }
+  .password-input { @apply relative block; }
+  .password-input input { @apply w-full pr-11; }
+  .password-toggle { @apply absolute right-2 top-1/2 -translate-y-1/2 border-0 bg-transparent px-2 py-1 text-base font-bold text-ocean hover:text-teal; }
   .form-field { @apply mb-4; }
   .generate-form { @apply animate-fade-up; }
   .generate-button { @apply mt-2 w-full; }
@@ -128,6 +137,9 @@
   .login-panel h1 { @apply mt-8 max-w-lg; }
   .login-copy { @apply mb-8 mt-3 max-w-md text-base leading-7 text-ink/60; }
   .login-panel small { @apply mt-5 text-xs text-ink/40; }
+  .form-error { @apply mt-4 rounded-lg border border-coral/40 bg-coral/10 px-3 py-2 text-sm text-coral; }
+  .form-success { @apply mt-4 rounded-lg border border-teal/40 bg-teal/10 px-3 py-2 text-sm text-teal; }
+  .auth-switch { @apply self-start; }
   .login-art { @apply relative hidden overflow-hidden bg-ocean p-12 lg:block; }
   .login-art::before { content: ''; @apply absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal/50; }
   .login-art::after { content: ''; @apply absolute -bottom-32 -left-24 h-96 w-96 rounded-full border-[40px] border-coral/50; }

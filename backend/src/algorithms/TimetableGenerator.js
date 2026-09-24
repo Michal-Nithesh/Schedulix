@@ -114,6 +114,7 @@ export class TimetableGenerator {
   createState() {
     return {
       entries: [],
+      bestEntries: [],
       divisionSlots: new Set(),
       facultySlots: new Set(),
       roomSlots: new Set(),
@@ -264,6 +265,7 @@ export class TimetableGenerator {
     state.subjectDays.set(subjectKey, subjectDays);
     this.addPeriod(state.divisionPeriods, task.division.id, candidate.slot.period);
     this.addPeriod(state.facultyPeriods, candidate.faculty.id, candidate.slot.period);
+    if (state.entries.length > state.bestEntries.length) state.bestEntries = state.entries.map((entry) => ({ ...entry }));
   }
 
   addPeriod(map, resourceId, period) {
@@ -352,6 +354,16 @@ export class TimetableGenerator {
       message: `Unable to schedule ${failure.requiredSessions} sessions for ${this.getSubject(failure.subjectId)?.name || failure.subjectId}.`,
     }));
 
-    return { valid: false, status: 'INCOMPLETE', entries: [], conflicts };
+    const scheduledCounts = state.bestEntries.reduce((counts, entry) => {
+      const key = `${entry.divisionId}:${entry.subjectId}`;
+      counts[key] = (counts[key] || 0) + 1;
+      return counts;
+    }, {});
+    const incompleteConflicts = conflicts.map((conflict) => ({
+      ...conflict,
+      scheduledSessions: scheduledCounts[`${conflict.divisionId}:${conflict.subjectId}`] || 0,
+    }));
+
+    return { valid: false, status: 'INCOMPLETE', entries: state.bestEntries, conflicts: incompleteConflicts };
   }
 }

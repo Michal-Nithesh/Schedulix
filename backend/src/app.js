@@ -5,7 +5,16 @@ import apiRoutes from './routes/api.js';
 
 const app = express();
 
-app.use(cors({ origin: env.frontendUrl, credentials: true }));
+const frontendOrigins = new Set([
+  env.frontendUrl,
+  env.frontendUrl.replace('localhost', '127.0.0.1'),
+  env.frontendUrl.replace('127.0.0.1', 'localhost'),
+]);
+
+app.use(cors({
+  origin: (origin, callback) => callback(null, !origin || frontendOrigins.has(origin)),
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {

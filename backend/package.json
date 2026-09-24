@@ -6,11 +6,16 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "seed:demo-users": "node src/data/seedDemoUsers.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.0"
   }
 }

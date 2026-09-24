@@ -143,6 +143,33 @@ test('reports an impossible schedule with grouped reasons', () => {
   assert.ok(result.conflicts[0].reasons.some((reason) => reason.type === 'ROOM_CAPACITY'));
 });
 
+test('preserves scheduled entries when later tasks make the timetable incomplete', () => {
+  const result = createGenerator({
+    divisions: [
+      { id: 'd1', name: 'D1', departmentId: 'dept-cse', studentCount: 10 },
+      { id: 'd2', name: 'D2', departmentId: 'dept-cse', studentCount: 10 },
+    ],
+    subjects: [
+      { id: 'a', name: 'A', departmentId: 'dept-cse', requiredSessions: 1, roomType: 'CLASSROOM', capacity: 10 },
+      { id: 'b', name: 'B', departmentId: 'dept-cse', requiredSessions: 1, roomType: 'CLASSROOM', capacity: 10 },
+    ],
+    faculty: [{ id: 'f1', name: 'Shared', qualifications: ['a', 'b'] }],
+    classrooms: [{ id: 'r1', name: 'Room 1', roomType: 'CLASSROOM', capacity: 20 }],
+    divisionSubjects: {
+      d1: [{ subjectId: 'a', requiredSessions: 1 }],
+      d2: [{ subjectId: 'b', requiredSessions: 1 }],
+    },
+    facultyAvailabilityMap: { f1: { only: true } },
+    roomAvailability: { r1: { only: true } },
+    timeSlots: [{ id: 'only', day: 'Monday', period: 1 }],
+  }).generate();
+
+  assert.equal(result.status, 'INCOMPLETE');
+  assert.equal(result.entries.length, 1);
+  assert.equal(result.conflicts[0].scheduledSessions, 0);
+  assert.equal(result.conflicts[0].requiredSessions, 1);
+});
+
 test('backtracks after an earlier resource choice blocks a later task', () => {
   const divisions = [
     { id: 'd1', name: 'D1', departmentId: 'dept-cse', studentCount: 10 },

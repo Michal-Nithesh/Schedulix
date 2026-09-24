@@ -11,9 +11,43 @@ drop table if exists audit_logs, conflicts, timetable_entries, generation_runs,
 create table app_users (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null,
-  role text not null default 'admin' check (role in ('admin', 'scheduler', 'viewer')),
+  role text not null default 'VIEWER' check (role in ('ADMINISTRATOR', 'SCHEDULER', 'VIEWER')),
   created_at timestamptz not null default now()
 );
+
+create or replace function public.current_user_role()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select role
+  from public.app_users
+  where id = auth.uid();
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.app_users (id, display_name, role)
+  values (
+    new.id,
+    coalesce(nullif(new.raw_user_meta_data ->> 'display_name', ''), split_part(new.email, '@', 1)),
+    'VIEWER'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 create table departments (
   id text primary key,
@@ -174,5 +208,33 @@ alter table generation_runs enable row level security;
 alter table timetable_entries enable row level security;
 alter table conflicts enable row level security;
 alter table audit_logs enable row level security;
+
+-- Safe role-aware access. RLS remains enabled; policies rely on the current_user_role() helper.
+create policy "app_users_select_own_profile_or_admin" on app_users
+for select to authenticated
+using (
+  id = auth.uid() or public.current_user_role() = 'ADMINISTRATOR'
+);
+
+create policy "app_users_insert_admin_only" on app_users
+for insert to authenticated
+with check (
+  public.current_user_role() = 'ADMINISTRATOR'
+);
+
+create policy "app_users_update_admin_only" on app_users
+for update to authenticated
+using (
+  public.current_user_role() = 'ADMINISTRATOR'
+)
+with check (
+  public.current_user_role() = 'ADMINISTRATOR'
+);
+
+create policy "app_users_delete_admin_only" on app_users
+for delete to authenticated
+using (
+  public.current_user_role() = 'ADMINISTRATOR'
+);
 
 -- The API service role bypasses RLS. Add user-facing policies when auth is wired in.
